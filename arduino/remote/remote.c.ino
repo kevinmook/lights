@@ -10,7 +10,7 @@
 #endif
 
 #define PIN             2
-#define NUMPIXELS       100
+#define NUMPIXELS       50
 
 #ifndef ADAFRUIT
   WS2812 LED(NUMPIXELS);
@@ -27,8 +27,8 @@ void setup() {
   bool toggle = false;
   initializeLEDs();
   
-  for(int led=0; led<=NUMPIXELS; led++) {
-    setColor(led, 0, 0, 50);
+  for(int led=0; led<NUMPIXELS; led++) {
+    setColor(led, led, 0, NUMPIXELS - led);
   }
   applyColor();
   
@@ -36,11 +36,11 @@ void setup() {
   
   while (wifi.ready() != 1) {
     delay(1000);
-    for(int led=0; led<=NUMPIXELS; led++) {
+    for(int led=0; led<NUMPIXELS; led++) {
       if(toggle) {
-        setColor(led, 50, 0, 0);
-      } else {
         setColor(led, 0, 0, 50);
+      } else {
+        setColor(led, 50, 0, 0);
       }
     }
     applyColor();
@@ -48,7 +48,7 @@ void setup() {
   }
   String address = wifi.server(8080);//sets up server and returns IP
   
-  for(int led=0; led<=NUMPIXELS; led++) {
+  for(int led=0; led<NUMPIXELS; led++) {
     setColor(led, 50, 50, 50);
   }
   applyColor();
@@ -65,14 +65,6 @@ void loop() {
     blue = -1;
     sscanf(request_path, "/?command=%d,%d,%d,%d,%d", &low_led, &high_led, &red, &green, &blue);
     if (low_led >= 0 && high_led >= 0 && red >= 0 && green >= 0 && blue >= 0) {
-      red &= 0xFF;
-      green &= 0xFF;
-      blue &= 0xFF;
-      if(low_led < 0) low_led = 0;
-      if(low_led >= NUMPIXELS) low_led = NUMPIXELS - 1;
-      if(high_led < 0) high_led = 0;
-      if(high_led > NUMPIXELS) high_led = NUMPIXELS;
-      if(low_led > high_led) low_led = high_led;
       for(int led=low_led; led<high_led; led++) {
         setColor(led, red, green, blue);
       }
@@ -95,6 +87,14 @@ void initializeLEDs() {
 }
 
 void setColor(int led, int r, int g, int b) {
+    r &= 0xFF;
+    g &= 0xFF;
+    b &= 0xFF;
+    if(low_led < 0) low_led = 0;
+    if(low_led >= NUMPIXELS) low_led = NUMPIXELS - 1;
+    if(high_led < 0) high_led = 0;
+    if(high_led > NUMPIXELS) high_led = NUMPIXELS;
+    if(low_led > high_led) low_led = high_led;
   #ifndef ADAFRUIT
     value.r = r;
     value.g = g;
