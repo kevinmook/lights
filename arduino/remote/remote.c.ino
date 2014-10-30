@@ -1,26 +1,36 @@
+
+#define ADAFRUIT
+
 #include <DigiFi.h>
-#include <Adafruit_NeoPixel.h>
 
-// Which pin on the Arduino is connected to the NeoPixels?
+#ifndef ADAFRUIT
+  #include <WS2812.h>
+#else
+  #include <Adafruit_NeoPixel.h>
+#endif
+
 #define PIN             2
+#define NUMPIXELS       100
 
-// How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS       250
+#ifndef ADAFRUIT
+  WS2812 LED(NUMPIXELS);
+  cRGB value;
+#else
+  Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+#endif
 
-#define MAX_BRIGHTNESS  100
-#define DELAY_VAL       50
-
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-int low_led, high_led, red, green, blue;
+int low_led, high_led;
+int red, green, blue;
 DigiFi wifi;
 
 void setup() {
   bool toggle = false;
-  pixels.begin(); // This initializes the NeoPixel library.
+  initializeLEDs();
   
   for(int led=0; led<=NUMPIXELS; led++) {
-    pixels.setPixelColor(led, pixels.Color(0, 0, 50));
+    setColor(led, 0, 0, 50);
   }
+  applyColor();
   
   wifi.begin(9600);
   
@@ -28,23 +38,23 @@ void setup() {
     delay(1000);
     for(int led=0; led<=NUMPIXELS; led++) {
       if(toggle) {
-        pixels.setPixelColor(led, pixels.Color(50, 0, 0));
+        setColor(led, 50, 0, 0);
       } else {
-        pixels.setPixelColor(led, pixels.Color(0, 0, 50));
+        setColor(led, 0, 0, 50);
       }
     }
+    applyColor();
     toggle = !toggle;
   }
   String address = wifi.server(8080);//sets up server and returns IP
   
   for(int led=0; led<=NUMPIXELS; led++) {
-    pixels.setPixelColor(led, pixels.Color(50, 50, 50));
+    setColor(led, 50, 50, 50);
   }
-  pixels.show();
+  applyColor();
 }
 
 void loop() {
-  
   if(wifi.serverRequest()) {
     char request_path[50];
     wifi.serverRequestPath().toCharArray(request_path, 50);
@@ -64,9 +74,9 @@ void loop() {
       if(high_led > NUMPIXELS) high_led = NUMPIXELS;
       if(low_led > high_led) low_led = high_led;
       for(int led=low_led; led<high_led; led++) {
-        pixels.setPixelColor(led, pixels.Color(red, green, blue));
+        setColor(led, red, green, blue);
       }
-      pixels.show();
+      applyColor();
     }
     
     // pixels.getPixels();   // returns current state
@@ -76,8 +86,34 @@ void loop() {
   delay(10);
 }
 
-void serverResponse(String response, int code) //defaults to code = 200
-{
+void initializeLEDs() {
+  #ifndef ADAFRUIT
+    LED.setOutput(PIN);
+  #else
+    pixels.begin();
+  #endif
+}
+
+void setColor(int led, int r, int g, int b) {
+  #ifndef ADAFRUIT
+    value.r = r;
+    value.g = g;
+    value.b = b;
+    LED.set_crgb_at(led, value);
+  #else
+    pixels.setPixelColor(led, pixels.Color(r, g, b));
+  #endif
+}
+
+void applyColor() {
+  #ifndef ADAFRUIT
+    LED.sync(); // Sends the value to the LED
+  #else
+    pixels.show();
+  #endif
+}
+
+void serverResponse(String response, int code) { //defaults to code = 200
     Serial1.print("HTTP/1.1 ");
     Serial1.print(code);
     if(code==200)

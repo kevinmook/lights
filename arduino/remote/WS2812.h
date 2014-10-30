@@ -12,6 +12,8 @@
 * License: GNU GPL v2 (see License.txt)
 */
 
+#ifndef ADAFRUIT
+
 #ifndef WS2812_H_
 #define WS2812_H_
 
@@ -70,3 +72,4 @@ private:
 
 
 #endif /* WS2812_H_ */
+#endif /* ADAFRUIT */

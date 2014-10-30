@@ -12,6 +12,9 @@
 * License: GNU GPL v2 (see License.txt)
 */
 
+#define ADAFRUIT
+#ifndef ADAFRUIT
+
 #include "WS2812.h"
 #include <stdlib.h>
 
@@ -97,4 +100,6 @@ void WS2812::setOutput(uint8_t pin) {
 	ws2812_port = portOutputRegister(digitalPinToPort(pin));
 	ws2812_port_reg = portModeRegister(digitalPinToPort(pin));
 }
-#endif 
+
+#endif /* ARDUINO */
+#endif /* ADAFRUIT */
